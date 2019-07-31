@@ -40,6 +40,8 @@ findPackage(gtest REQUIRED
 file(GLOB caps_test_SOURCES
   tests/*.cpp
 )
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 add_executable(caps-tests ${caps_test_SOURCES})
 target_include_directories(caps-tests PRIVATE
   include
@@ -49,5 +51,6 @@ target_include_directories(caps-tests PRIVATE
 target_link_libraries(caps-tests
   caps
   ${gtest_LIBRARIES}
+  Threads::Threads
 )
 endif(BUILD_TEST)

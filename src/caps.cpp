@@ -1,6 +1,10 @@
 #include <stdio.h>
+#include <stdarg.h>
 #include <inttypes.h>
+#include <string.h>
+#include <arpa/inet.h>
 #include <stdexcept>
+#include <algorithm>
 #include "caps.h"
 #include "defs.h"
 #include "member.h"

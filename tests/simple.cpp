@@ -85,7 +85,7 @@ static void writeCaps(Caps& caps) {
   caps << "hello";
   caps << string("world");
   caps << (float)0.1;
-  caps << 10000LL;
+  caps << (int64_t)10000LL;
   caps << (double)1.1;
   caps << vector<char>{ 'f', 'o', 'o' };
   Caps sub;
