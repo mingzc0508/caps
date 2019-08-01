@@ -280,3 +280,21 @@ TEST(TestCaps, copymove) {
   iterateCaps(d);
   EXPECT_EQ(a.empty(), true);
 }
+
+TEST(TestCaps, initializer_list) {
+  Caps a{ 1, true, "hello", string("world"), (float)0.1, (int64_t)10000LL, (double)1.1 };
+  a << vector<char>{ 'f', 'o', 'o' };
+  a << Caps{{}};
+  readCaps(a);
+  Caps c{ { "hello", "world", 233 } };
+  EXPECT_EQ(c.size(), 1);
+  Caps d = c[0];
+  auto it = d.iterate();
+  string s;
+  it >> s;
+  EXPECT_EQ(s, "hello");
+  it >> s;
+  EXPECT_EQ(s, "world");
+  EXPECT_EQ((int32_t)it.next(), 233);
+  EXPECT_EQ(it.hasNext(), false);
+}

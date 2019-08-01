@@ -28,6 +28,13 @@ Caps::Caps() {
   aliveIndicator = make_shared<int32_t>(0);
 }
 
+Caps::Caps(initializer_list<Caps::Value> list) {
+  aliveIndicator = make_shared<int32_t>(0);
+  for_each(list.begin(), list.end(), [this](const Caps::Value& v) {
+    members.push_back(v.member);
+  });
+}
+
 Caps::~Caps() {
   aliveIndicator.reset();
   clearMembers();
@@ -468,6 +475,66 @@ Caps::Value Caps::at(uint32_t i) const {
 }
 
 Caps::Value::Value(MemberPointer m) : member{m} {
+}
+
+Caps::Value::Value(bool v) {
+  member = make_shared<Uint32Member>(v);
+}
+
+Caps::Value::Value(int8_t v) {
+  member = make_shared<Int32Member>(v);
+}
+
+Caps::Value::Value(uint8_t v) {
+  member = make_shared<Uint32Member>(v);
+}
+
+Caps::Value::Value(int16_t v) {
+  member = make_shared<Int32Member>(v);
+}
+
+Caps::Value::Value(uint16_t v) {
+  member = make_shared<Uint32Member>(v);
+}
+
+Caps::Value::Value(int32_t v) {
+  member = make_shared<Int32Member>(v);
+}
+
+Caps::Value::Value(uint32_t v) {
+  member = make_shared<Uint32Member>(v);
+}
+
+Caps::Value::Value(int64_t v) {
+  member = make_shared<Int64Member>(v);
+}
+
+Caps::Value::Value(uint64_t v) {
+  member = make_shared<Uint64Member>(v);
+}
+
+Caps::Value::Value(float v) {
+  member = make_shared<FloatMember>(v);
+}
+
+Caps::Value::Value(double v) {
+  member = make_shared<DoubleMember>(v);
+}
+
+Caps::Value::Value(const char* v) {
+  member = make_shared<StringMember>(v);
+}
+
+Caps::Value::Value(const string& v) {
+  member = make_shared<StringMember>(v.c_str());
+}
+
+Caps::Value::Value() {
+  member = make_shared<VoidMember>();
+}
+
+Caps::Value::Value(std::initializer_list<Value> list) {
+  member = make_shared<ObjectMember>(move(Caps(list)));
 }
 
 Caps::Value::operator bool() const {

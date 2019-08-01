@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <initializer_list>
 
 namespace rokid {
 
@@ -26,8 +27,57 @@ class Member;
 typedef std::shared_ptr<Member> MemberPointer;
 
 class Caps {
+private:
+  /// \brief Caps中成员变量数据封装类
+  class Value {
+  public:
+    Value(bool v);
+    Value(int8_t v);
+    Value(uint8_t v);
+    Value(int16_t v);
+    Value(uint16_t v);
+    Value(int32_t v);
+    Value(uint32_t v);
+    Value(int64_t v);
+    Value(uint64_t v);
+    Value(float v);
+    Value(double v);
+    Value(const char* v);
+    Value(const std::string& v);
+    Value(std::initializer_list<Value> list);
+    Value();
+
+    operator bool() const;
+    operator int8_t() const;
+    operator uint8_t() const;
+    operator int16_t() const;
+    operator uint16_t() const;
+    operator int32_t() const;
+    operator uint32_t() const;
+    operator int64_t() const;
+    operator uint64_t() const;
+    operator float() const;
+    operator double() const;
+    operator const std::string&() const;
+    operator Caps() const;
+    void get(std::vector<char>& out) const;
+
+    /// \return 数据类型 (CAPS_MEMBER_TYPE_INT32 etc.)
+    char type() const;
+
+    inline bool isVoid() const { return type() == CAPS_MEMBER_TYPE_VOID; }
+
+  private:
+    Value(MemberPointer m);
+
+    MemberPointer member;
+
+    friend class Caps;
+  };
+
 public:
   Caps();
+  Caps(std::initializer_list<Value> list);
   ~Caps();
 
   /// \brief copy constructor
@@ -103,37 +153,6 @@ public:
   /// \throws invalid_argument in == nullptr或size长度不正确
   /// \throws domain_error 输入二进制数据不是Caps序列化生成的，格式错误
   void parse(const void* in, uint32_t size);
-
-  /// \brief Caps中成员变量数据封装类
-  class Value {
-  public:
-    operator bool() const;
-    operator int8_t() const;
-    operator uint8_t() const;
-    operator int16_t() const;
-    operator uint16_t() const;
-    operator int32_t() const;
-    operator uint32_t() const;
-    operator int64_t() const;
-    operator uint64_t() const;
-    operator float() const;
-    operator double() const;
-    operator const std::string&() const;
-    operator Caps() const;
-    void get(std::vector<char>& out) const;
-
-    /// \return 数据类型 (CAPS_MEMBER_TYPE_INT32 etc.)
-    char type() const;
-
-    inline bool isVoid() const { return type() == CAPS_MEMBER_TYPE_VOID; }
-
-  private:
-    Value(MemberPointer m);
-
-    MemberPointer member;
-
-    friend class Caps;
-  };
 
   /// \brief 按下标访问Caps内数据成员
   Value at(uint32_t i) const;

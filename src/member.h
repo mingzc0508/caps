@@ -93,6 +93,10 @@ public:
     value = o;
   }
 
+  ObjectMember(Caps&& o) {
+    value = std::move(o);
+  }
+
   ObjectMember(const uint8_t* data, uint32_t size) {
     value.parse(data, size);
   }
