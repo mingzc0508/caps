@@ -214,6 +214,15 @@ public:
   /// \brief 清除Caps内部数据
   void clear();
 
+  /// \brief 获取Caps二进制数据长度
+  ///        例如serialize后的数据通过网络传输
+  ///        接收端需要此函数来获取完整的一个Caps二进制数据长度
+  /// \param in serialize生成的二进制数据
+  /// \param size 'in'的可用长度，可能大于或小于实际Caps二进制数据长度
+  /// throws invalid_argument 输入参数'in'为nullptr
+  /// throws out_of_range 输入参数'in'的长度不足
+  static uint32_t getBinarySize(const void* in, uint32_t size);
+
 private:
   uint8_t* serializeMemberDesc(uint8_t* out, uint32_t size) const;
 

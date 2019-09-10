@@ -225,19 +225,21 @@ void Caps::parse(const void* in, uint32_t size) {
   if (in == nullptr || size <= HEADER_SIZE)
     throw invalid_argument("'in' is nullptr or size too small");
   uint32_t totalSize;
-  auto p = parseHeader(reinterpret_cast<const uint8_t*>(in), totalSize);
+  auto p = reinterpret_cast<const uint8_t*>(in);
+  parseHeader(p, totalSize);
   if (totalSize != size)
     throwException<invalid_argument>("incorrect size, expect %u, actual %u",
         totalSize, size);
+  uint32_t off = HEADER_SIZE;
+  // uint32_t curSize = p - reinterpret_cast<const uint8_t*>(in);
   uint32_t descLen;
-  auto desc = uleb128Read(p, descLen);
-  p = desc + descLen;
-  uint32_t curSize = p - reinterpret_cast<const uint8_t*>(in);
-  if (curSize > size)
+  off += uleb128Read(p + off, size - off, descLen);
+  auto desc = p + off;
+  off += descLen;
+  if (off > size)
     throw domain_error("input data may corrupted");
   clearMembers();
-  auto psize = size - curSize;
-  parseMembers(p, psize, desc, descLen);
+  parseMembers(p + off, size - off, desc, descLen);
 }
 
 const uint8_t* Caps::parseHeader(const uint8_t* p, uint32_t& totalSize) {
@@ -282,67 +284,77 @@ static double leReadDouble(const uint8_t* in) {
 void Caps::parseMembers(const uint8_t* in, uint32_t psize,
     const uint8_t* desc, uint32_t descLen) {
   uint32_t i;
-  auto p = in;
+  uint32_t off{0};
   for (i = 0; i < descLen; ++i) {
     switch (desc[i]) {
     case CAPS_MEMBER_TYPE_INT32: {
       int32_t v;
-      p = leb128Read(p, v);
+      off += leb128Read(in + off, psize - off, v);
       members.push_back(make_shared<Int32Member>(v));
       break;
     }
     case CAPS_MEMBER_TYPE_INT64: {
       int64_t v;
-      p = leb128Read(p, v);
+      off += leb128Read(in + off, psize - off, v);
       members.push_back(make_shared<Int64Member>(v));
       break;
     }
     case CAPS_MEMBER_TYPE_UINT32: {
       uint32_t v;
-      p = uleb128Read(p, v);
+      off += uleb128Read(in + off, psize - off, v);
       members.push_back(make_shared<Uint32Member>(v));
       break;
     }
     case CAPS_MEMBER_TYPE_UINT64: {
       uint64_t v;
-      p = uleb128Read(p, v);
+      off += uleb128Read(in + off, psize - off, v);
       members.push_back(make_shared<Uint64Member>(v));
       break;
     }
     case CAPS_MEMBER_TYPE_FLOAT: {
       float v;
-      v = leReadFloat(p);
+      if (psize - off < sizeof(float))
+        throwException<domain_error>("input data may corrupted");
+      v = leReadFloat(in + off);
       members.push_back(make_shared<FloatMember>(v));
-      p += sizeof(float);
+      off += sizeof(float);
       break;
     }
     case CAPS_MEMBER_TYPE_DOUBLE: {
       double v;
-      v = leReadDouble(p);
+      if (psize - off < sizeof(double))
+        throwException<domain_error>("input data may corrupted");
+      v = leReadDouble(in + off);
       members.push_back(make_shared<DoubleMember>(v));
-      p += sizeof(double);
+      off += sizeof(double);
       break;
     }
     case CAPS_MEMBER_TYPE_STRING: {
       uint32_t v;
-      p = uleb128Read(p, v);
-      members.push_back(make_shared<StringMember>(p, v));
-      p += v;
+      off += uleb128Read(in + off, psize - off, v);
+      if (psize - off < v)
+        throwException<domain_error>("input data may corrupted");
+      members.push_back(make_shared<StringMember>(in + off, v));
+      off += v;
       break;
     }
     case CAPS_MEMBER_TYPE_BINARY: {
       uint32_t v;
-      p = uleb128Read(p, v);
-      members.push_back(make_shared<BinaryMember>(p, v));
-      p += v;
+      off += uleb128Read(in + off, psize - off, v);
+      if (psize - off < v)
+        throwException<domain_error>("input data may corrupted");
+      members.push_back(make_shared<BinaryMember>(in + off, v));
+      off += v;
       break;
     }
     case CAPS_MEMBER_TYPE_OBJECT: {
-      auto sz = beReadUint32(p);
-      if (p + sz > in + psize)
-        throw domain_error("input data may corrupted");
-      members.push_back(make_shared<ObjectMember>(p, sz));
-      p += sz;
+      if (psize - off < sizeof(uint32_t))
+        throwException<domain_error>("input data may corrupted");
+      auto sz = beReadUint32(in + off);
+      if (off + sz > psize)
+        throwException<domain_error>("input data may corrupted");
+      members.push_back(make_shared<ObjectMember>(in + off, sz));
+      off += sz;
       break;
     }
     case CAPS_MEMBER_TYPE_VOID:
@@ -352,8 +364,6 @@ void Caps::parseMembers(const uint8_t* in, uint32_t psize,
       throwException<domain_error>("unknown member type %c, input data may corrupted",
           desc[i]);
     }
-    if (p - in > psize)
-      throw domain_error("input data may corrupted");
   }
 }
 
@@ -399,6 +409,14 @@ uint32_t Caps::dump(char* out, uint32_t size) const {
 
 void Caps::clear() {
   clearMembers();
+}
+
+uint32_t Caps::getBinarySize(const void* in, uint32_t size) {
+  if (in == nullptr)
+    throwException<invalid_argument>("input data is nullptr");
+  if (size < sizeof(uint32_t))
+    throwException<out_of_range>("input size %u < 4", size);
+  return beReadUint32(reinterpret_cast<const uint8_t*>(in));
 }
 
 static uint32_t outputIndent(char* out, uint32_t size, uint32_t indent) {

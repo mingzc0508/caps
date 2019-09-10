@@ -12,7 +12,7 @@ namespace rokid {
 template <typename T, typename R, int32_t M = std::is_same<R, int32_t>::value ? LEB128_MAX_INT32_BYTES : LEB128_MAX_INT64_BYTES,
          typename std::enable_if<std::is_same<R, int32_t>::value || std::is_same<R, int64_t>::value, R>::type* = nullptr,
          typename std::enable_if<std::is_same<T, const uint8_t>::value || std::is_same<T, uint8_t>::value, T>::type* = nullptr>
-T* leb128Read(T* in, R& res) {
+uint32_t leb128Read(T* in, uint32_t size, R& res) {
   R cur;
   T* p = in;
   uint8_t curShift{0};
@@ -22,6 +22,8 @@ T* leb128Read(T* in, R& res) {
   while (true) {
     if (p - in >= M)
       throw std::length_error("input data corrupted");
+    if (p - in >= size)
+      throw std::out_of_range("input data size not enough");
     cur = *p;
     res |= (cur & LEB128_BYTE_MASK) << curShift;
     curShift += LEB128_BITS_PER_BYTE;
@@ -32,13 +34,13 @@ T* leb128Read(T* in, R& res) {
   if (curShift < (sizeof(R) << 3))
     signExtBits -= curShift;
   res = (res << signExtBits) >> signExtBits;
-  return p;
+  return p - in;
 }
 
 template <typename T, typename R, int32_t M = std::is_same<R, uint32_t>::value ? LEB128_MAX_INT32_BYTES : LEB128_MAX_INT64_BYTES,
          typename std::enable_if<std::is_same<R, uint32_t>::value || std::is_same<R, uint64_t>::value, R>::type* = nullptr,
          typename std::enable_if<std::is_same<T, const uint8_t>::value || std::is_same<T, uint8_t>::value, T>::type* = nullptr>
-T* uleb128Read(T* in, R& res) {
+uint32_t uleb128Read(T* in, uint32_t size, R& res) {
   R cur;
   T* p = in;
   uint8_t curShift{0};
@@ -47,6 +49,8 @@ T* uleb128Read(T* in, R& res) {
   while (true) {
     if (p - in >= M)
       throw std::length_error("input data corrupted");
+    if (p - in >= size)
+      throw std::out_of_range("input data size not enough");
     cur = *p;
     res |= (cur & LEB128_BYTE_MASK) << curShift;
     curShift += LEB128_BITS_PER_BYTE;
@@ -54,7 +58,7 @@ T* uleb128Read(T* in, R& res) {
     if (cur <= LEB128_BYTE_MASK)
       break;
   }
-  return p;
+  return p - in;
 }
 
 template <typename T,
