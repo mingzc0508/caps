@@ -397,6 +397,10 @@ uint32_t Caps::dump(char* out, uint32_t size) const {
   return dump(0, out, size);
 }
 
+void Caps::clear() {
+  clearMembers();
+}
+
 static uint32_t outputIndent(char* out, uint32_t size, uint32_t indent) {
   auto p = out;
   auto psize = size;

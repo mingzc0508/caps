@@ -62,6 +62,9 @@ private:
     operator Caps() const;
     void get(std::vector<char>& out) const;
 
+    // TODO: ReturnValue operator =(AssignType);
+    // TODO: ReturnValue set(AssignType);
+
     /// \return 数据类型 (CAPS_MEMBER_TYPE_INT32 etc.)
     char type() const;
 
@@ -94,6 +97,7 @@ public:
   /// \param size buffer size
   /// \throws invalid_argument
   /// \throws out_of_range
+  /// \return count of output bytes
   uint32_t serialize(void* out, uint32_t size) const;
 
   /// \brief 写入void类型
@@ -206,6 +210,9 @@ public:
   /// \param size 缓冲区大小
   /// \return 字符串长度
   uint32_t dump(char* out, uint32_t size) const;
+
+  /// \brief 清除Caps内部数据
+  void clear();
 
 private:
   uint8_t* serializeMemberDesc(uint8_t* out, uint32_t size) const;
