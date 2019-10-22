@@ -438,6 +438,8 @@ uint32_t Caps::dump(uint32_t indent, char* out, uint32_t size) const {
   auto p = out;
   auto psize = size;
   uint32_t idx{0};
+  if (size == 0)
+    return 0;
   for_each(members.begin(), members.end(), [indent, &p, &psize, &idx](const MemberPointer& m) {
     auto c = outputIndent(p, psize, indent);
     p += c;
@@ -447,22 +449,22 @@ uint32_t Caps::dump(uint32_t indent, char* out, uint32_t size) const {
       c = snprintf(p, psize, "%u: %" PRIi32 "\n", idx, static_pointer_cast<Int32Member>(m)->value.number);
       break;
     case CAPS_MEMBER_TYPE_UINT32:
-      c = snprintf(p, psize, "%u: %" PRIu32 "\n", idx, static_pointer_cast<Uint32Member>(m)->value.number);
+      c = snprintf(p, psize, "%u: %" PRIu32 "u\n", idx, static_pointer_cast<Uint32Member>(m)->value.number);
       break;
     case CAPS_MEMBER_TYPE_INT64:
-      c = snprintf(p, psize, "%u: %" PRIi64 "\n", idx, static_pointer_cast<Int64Member>(m)->value.number);
+      c = snprintf(p, psize, "%u: %" PRIi64 "l\n", idx, static_pointer_cast<Int64Member>(m)->value.number);
       break;
     case CAPS_MEMBER_TYPE_UINT64:
-      c = snprintf(p, psize, "%u: %" PRIu64 "\n", idx, static_pointer_cast<Uint64Member>(m)->value.number);
+      c = snprintf(p, psize, "%u: %" PRIu64 "ul\n", idx, static_pointer_cast<Uint64Member>(m)->value.number);
       break;
     case CAPS_MEMBER_TYPE_FLOAT:
       c = snprintf(p, psize, "%u: %f\n", idx, static_pointer_cast<FloatMember>(m)->value.number);
       break;
     case CAPS_MEMBER_TYPE_DOUBLE:
-      c = snprintf(p, psize, "%u: %lf\n", idx, static_pointer_cast<DoubleMember>(m)->value.number);
+      c = snprintf(p, psize, "%u: %lfL\n", idx, static_pointer_cast<DoubleMember>(m)->value.number);
       break;
     case CAPS_MEMBER_TYPE_STRING:
-      c = snprintf(p, psize, "%u: %s\n", idx, static_pointer_cast<StringMember>(m)->data.c_str());
+      c = snprintf(p, psize, "%u: \"%s\"\n", idx, static_pointer_cast<StringMember>(m)->data.c_str());
       break;
     case CAPS_MEMBER_TYPE_BINARY:
       c = snprintf(p, psize, "%u: binary data %zd bytes\n", idx++, static_pointer_cast<BinaryMember>(m)->data.length());
@@ -487,7 +489,10 @@ uint32_t Caps::dump(uint32_t indent, char* out, uint32_t size) const {
     psize -= c;
     ++idx;
   });
-  return p - out;
+  auto r = p - out;
+  if (r == 0)
+    out[0] = '\0';
+  return r;
 }
 
 Caps::Value Caps::at(uint32_t i) const {
