@@ -22,7 +22,7 @@ uint32_t leb128Read(T* in, uint32_t size, R& res) {
   while (true) {
     if (p - in >= M)
       throw std::length_error("input data corrupted");
-    if (p - in >= size)
+    if ((uint32_t)(p - in) >= size)
       throw std::out_of_range("input data size not enough");
     cur = *p;
     res |= (cur & LEB128_BYTE_MASK) << curShift;
@@ -49,7 +49,7 @@ uint32_t uleb128Read(T* in, uint32_t size, R& res) {
   while (true) {
     if (p - in >= M)
       throw std::length_error("input data corrupted");
-    if (p - in >= size)
+    if ((uint32_t)(p - in) >= size)
       throw std::out_of_range("input data size not enough");
     cur = *p;
     res |= (cur & LEB128_BYTE_MASK) << curShift;
@@ -68,7 +68,7 @@ uint8_t* leb128Write(T v, uint8_t* out, uint32_t size) {
   int32_t cur;
   auto p = out;
   while (more) {
-    if (p - out >= size)
+    if ((uint32_t)(p - out) >= size)
       throw std::out_of_range("no enough buffer");
     cur = v & LEB128_BYTE_MASK;
     v >>= 7;
@@ -90,7 +90,7 @@ uint8_t* uleb128Write(T v, uint8_t* out, uint32_t size) {
   uint32_t cur;
   auto p = out;
   while (more) {
-    if (p - out >= size)
+    if ((uint32_t)(p - out) >= size)
       throw std::out_of_range("no enough buffer");
     cur = v & LEB128_BYTE_MASK;
     v >>= 7;

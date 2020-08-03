@@ -426,7 +426,7 @@ static uint32_t outputIndent(char* out, uint32_t size, uint32_t indent) {
   while (indent) {
     --indent;
     auto c = snprintf(p, psize, "%s", INDENT_STRING);
-    if (c > psize)
+    if ((uint32_t)c > psize)
       throw out_of_range("out buffer too small");
     p += c;
     psize -= c;
@@ -561,7 +561,7 @@ Caps::Value::Value() {
 }
 
 Caps::Value::Value(std::initializer_list<Value> list) {
-  member = make_shared<ObjectMember>(move(Caps(list)));
+  member = make_shared<ObjectMember>(Caps(list));
 }
 
 Caps::Value::operator bool() const {
