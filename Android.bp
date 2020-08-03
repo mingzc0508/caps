@@ -1,0 +1,16 @@
+cc_library_shared {
+  name: "libcaps",
+  srcs: [
+    "src/caps.cpp",
+  ],
+  local_include_dirs: [
+    "include",
+  ],
+  cflags: [
+    "-std=c++11",
+    "-fexceptions",
+  ],
+  export_include_dirs: [
+    "include",
+  ],
+}
