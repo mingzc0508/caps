@@ -67,25 +67,36 @@ typedef NumberMember<int64_t, CAPS_MEMBER_TYPE_INT64, 8> Int64Member;
 typedef NumberMember<uint64_t, CAPS_MEMBER_TYPE_UINT64, 8> Uint64Member;
 typedef NumberMember<double, CAPS_MEMBER_TYPE_DOUBLE, 8> DoubleMember;
 
-// TC: type char
-template <char TC>
-class DataMember : public Member {
+class StringMember : public Member {
 public:
-  DataMember(const char* v) {
+  StringMember(const char* v) {
     data = v;
   }
 
-  DataMember(const void* v, uint32_t l) {
+  StringMember(const void* v, uint32_t l) {
     data.assign(reinterpret_cast<const char*>(v), l);
   }
 
-  char type() const { return TC; }
+  char type() const { return CAPS_MEMBER_TYPE_STRING; }
 
 public:
   std::string data;
 };
-typedef DataMember<CAPS_MEMBER_TYPE_STRING> StringMember;
-typedef DataMember<CAPS_MEMBER_TYPE_BINARY> BinaryMember;
+
+class BinaryMember : public Member {
+public:
+  BinaryMember(const void* v, uint32_t l) {
+    if (l > 0) {
+      data.resize(l);
+      memcpy(data.data(), v, l);
+    }
+  }
+
+  char type() const { return CAPS_MEMBER_TYPE_BINARY; }
+
+public:
+  std::vector<char> data;
+};
 
 class ObjectMember : public Member {
 public:

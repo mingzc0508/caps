@@ -467,7 +467,7 @@ uint32_t Caps::dump(uint32_t indent, char* out, uint32_t size) const {
       c = snprintf(p, psize, "%u: \"%s\"\n", idx, static_pointer_cast<StringMember>(m)->data.c_str());
       break;
     case CAPS_MEMBER_TYPE_BINARY:
-      c = snprintf(p, psize, "%u: binary data %zd bytes\n", idx++, static_pointer_cast<BinaryMember>(m)->data.length());
+      c = snprintf(p, psize, "%u: binary data %zd bytes\n", idx++, static_pointer_cast<BinaryMember>(m)->data.size());
       break;
     case CAPS_MEMBER_TYPE_OBJECT:
       c = snprintf(p, psize, "%u: caps\n", idx);
@@ -666,6 +666,14 @@ Caps::Value::operator Caps() const {
         Member::typeStr(CAPS_MEMBER_TYPE_OBJECT),
         Member::typeStr(member->type()));
   return static_pointer_cast<ObjectMember>(member)->value;
+}
+
+Caps::Value::operator const vector<char>&() const {
+  if (member->type() != CAPS_MEMBER_TYPE_BINARY)
+    throwException<type_error>("expect %s, but is %s",
+        Member::typeStr(CAPS_MEMBER_TYPE_BINARY),
+        Member::typeStr(member->type()));
+  return static_pointer_cast<BinaryMember>(member)->data;
 }
 
 void Caps::Value::get(vector<char>& out) const {

@@ -59,6 +59,7 @@ private:
     operator float() const;
     operator double() const;
     operator const std::string&() const;
+    operator const std::vector<char>&() const;
     operator Caps() const;
     void get(std::vector<char>& out) const;
 
