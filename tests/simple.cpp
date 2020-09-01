@@ -33,7 +33,7 @@ void testLeb128(uint8_t* buf, uint32_t size) {
   p = buf;
   T v;
   while (p - buf < size) {
-    p = leb128Read(p, v);
+    p += leb128Read(p, size, v);
     EXPECT_EQ(v, nums.front());
     nums.pop_front();
   }
@@ -62,7 +62,7 @@ void testULeb128(uint8_t* buf, uint32_t size) {
   p = buf;
   T v;
   while (p - buf < size) {
-    p = uleb128Read(p, v);
+    p += uleb128Read(p, size, v);
     EXPECT_EQ(v, nums.front());
     nums.pop_front();
   }
@@ -80,7 +80,7 @@ TEST(TestLeb128, simple) {
 }
 
 static void writeCaps(Caps& caps) {
-  caps << 1;
+  caps << -905969663;
   caps << true;
   caps << "hello";
   caps << string("world");
@@ -96,7 +96,7 @@ static void writeCaps(Caps& caps) {
 static void readCaps(const Caps& caps) {
   try {
     int32_t t = caps.at(0);
-    EXPECT_EQ(t, 1);
+    EXPECT_EQ(t, -905969663);
     EXPECT_THROW(t = caps.at(2), Caps::type_error);
     string s = caps.at(2);
     EXPECT_EQ(s, "hello");
@@ -132,7 +132,7 @@ static void iterateCaps(Caps::iterator& it) {
   it >> d;
   it >> bin;
   it >> sub;
-  EXPECT_EQ(i, 1);
+  EXPECT_EQ(i, -905969663);
   EXPECT_EQ(b, true);
   EXPECT_EQ(s1, "hello");
   EXPECT_EQ(s2, "world");
@@ -155,7 +155,7 @@ TEST(TestCaps, base) {
   writeCaps(caps);
   readCaps(caps);
   try {
-    char buf[256];
+    char buf[512];
     auto sz = caps.serialize(buf, sizeof(buf));
     Caps ncaps;
     ncaps.parse(buf, sz);
@@ -282,7 +282,7 @@ TEST(TestCaps, copymove) {
 }
 
 TEST(TestCaps, initializer_list) {
-  Caps a{ 1, true, "hello", string("world"), (float)0.1, (int64_t)10000LL, (double)1.1 };
+  Caps a{ -905969663, true, "hello", string("world"), (float)0.1, (int64_t)10000LL, (double)1.1 };
   a << vector<char>{ 'f', 'o', 'o' };
   a << Caps{{}};
   readCaps(a);

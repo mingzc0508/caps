@@ -188,10 +188,20 @@ uint8_t* Caps::serializeMembers(uint8_t* out, uint32_t size) const {
       leWriteDouble(static_pointer_cast<DoubleMember>(member)->value.number, p);
       p += sizeof(double);
       break;
-    case CAPS_MEMBER_TYPE_STRING:
-    case CAPS_MEMBER_TYPE_BINARY: {
+    case CAPS_MEMBER_TYPE_STRING: {
       auto m = static_pointer_cast<StringMember>(member);
       uint32_t dataSize = m->data.length();
+      p = uleb128Write(dataSize, p, psize);
+      psize = size - (p - out);
+      if (psize < dataSize)
+        throw out_of_range("out buffer size too small");
+      memcpy(p, m->data.data(), dataSize);
+      p += dataSize;
+      break;
+    }
+    case CAPS_MEMBER_TYPE_BINARY: {
+      auto m = static_pointer_cast<BinaryMember>(member);
+      uint32_t dataSize = m->data.size();
       p = uleb128Write(dataSize, p, psize);
       psize = size - (p - out);
       if (psize < dataSize)
