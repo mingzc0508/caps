@@ -31,9 +31,10 @@ uint32_t leb128Read(T* in, uint32_t size, R& res) {
     if (cur <= LEB128_BYTE_MASK)
       break;
   }
-  if (curShift < (sizeof(R) << 3))
+  if (curShift < (sizeof(R) << 3)) {
     signExtBits -= curShift;
-  res = (res << signExtBits) >> signExtBits;
+    res = (res << signExtBits) >> signExtBits;
+  }
   return p - in;
 }
 
