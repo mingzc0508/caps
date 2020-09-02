@@ -104,9 +104,11 @@ static void readCaps(const Caps& caps) {
     EXPECT_EQ(c.size(), 1);
     EXPECT_EQ(c.at(0).isVoid(), true);
     bool b = caps.at(1);
+    EXPECT_EQ(b, true);
     int8_t i1;
     uint8_t u1;
     u1 = caps.at(1);
+    EXPECT_EQ(u1, 1);
     EXPECT_THROW(i1 = caps.at(1), Caps::type_error);
   } catch (exception& e) {
     FAIL() << e.what();

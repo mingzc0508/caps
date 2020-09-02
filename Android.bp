@@ -14,3 +14,26 @@ cc_library_shared {
     "include",
   ],
 }
+
+cc_binary {
+  name: "caps-tests",
+  srcs: [
+    "tests/main.cpp",
+    "tests/simple.cpp",
+  ],
+  local_include_dirs: [
+    "src",
+  ],
+  shared_libs: [
+    "libcaps",
+  ],
+  static_libs: [
+    "libgtest",
+  ],
+  cflags: [
+    "-std=c++11",
+    "-fexceptions",
+    "-Wno-unused-parameter",
+    "-Wno-sign-compare",
+  ],
+}
