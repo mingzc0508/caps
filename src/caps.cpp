@@ -670,6 +670,14 @@ Caps::Value::operator const string&() const {
   return static_pointer_cast<StringMember>(member)->data;
 }
 
+Caps::Value::operator const char*() const {
+  if (member->type() != CAPS_MEMBER_TYPE_STRING)
+    throwException<type_error>("expect %s, but is %s",
+        Member::typeStr(CAPS_MEMBER_TYPE_STRING),
+        Member::typeStr(member->type()));
+  return static_pointer_cast<StringMember>(member)->data.c_str();
+}
+
 Caps::Value::operator Caps() const {
   if (member->type() != CAPS_MEMBER_TYPE_OBJECT)
     throwException<type_error>("expect %s, but is %s",

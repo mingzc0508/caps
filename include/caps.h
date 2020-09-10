@@ -59,6 +59,7 @@ private:
     operator float() const;
     operator double() const;
     operator const std::string&() const;
+    operator const char*() const;
     operator const std::vector<char>&() const;
     operator Caps() const;
     void get(std::vector<char>& out) const;
@@ -187,7 +188,7 @@ public:
     inline void operator >> (uint64_t& v) const { v = next(); }
     inline void operator >> (float& v) const { v = next(); }
     inline void operator >> (double& v) const { v = next(); }
-    inline void operator >> (std::string& v) const { v.assign(next()); }
+    inline void operator >> (std::string& v) const { v.assign((const std::string&)next()); }
     inline void operator >> (std::vector<char>& v) const { next().get(v); }
     inline void operator >> (Caps& v) const { v = next(); }
 
