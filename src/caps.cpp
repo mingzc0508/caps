@@ -429,7 +429,7 @@ uint32_t Caps::getBinarySize(const void* in, uint32_t size) {
   return beReadUint32(reinterpret_cast<const uint8_t*>(in));
 }
 
-static uint32_t outputIndent(char* out, uint32_t size, uint32_t indent) {
+static int32_t outputIndent(char* out, uint32_t size, uint32_t indent) {
   auto p = out;
   auto psize = size;
   static const char* INDENT_STRING = "> ";
@@ -437,7 +437,7 @@ static uint32_t outputIndent(char* out, uint32_t size, uint32_t indent) {
     --indent;
     auto c = snprintf(p, psize, "%s", INDENT_STRING);
     if ((uint32_t)c > psize)
-      throw out_of_range("out buffer too small");
+      return -1;
     p += c;
     psize -= c;
   }
@@ -450,55 +450,59 @@ uint32_t Caps::dump(uint32_t indent, char* out, uint32_t size) const {
   uint32_t idx{0};
   if (size == 0)
     return 0;
-  for_each(members.begin(), members.end(), [indent, &p, &psize, &idx](const MemberPointer& m) {
+  auto it = members.begin();
+  while (it != members.end()) {
     auto c = outputIndent(p, psize, indent);
+    if (c < 0)
+      return size - 1;
     p += c;
     psize -= c;
-    switch (m->type()) {
+    switch ((*it)->type()) {
     case CAPS_MEMBER_TYPE_INT32:
-      c = snprintf(p, psize, "%u: %" PRIi32 "\n", idx, static_pointer_cast<Int32Member>(m)->value.number);
+      c = snprintf(p, psize, "%u: %" PRIi32 "\n", idx, static_pointer_cast<Int32Member>(*it)->value.number);
       break;
     case CAPS_MEMBER_TYPE_UINT32:
-      c = snprintf(p, psize, "%u: %" PRIu32 "u\n", idx, static_pointer_cast<Uint32Member>(m)->value.number);
+      c = snprintf(p, psize, "%u: %" PRIu32 "u\n", idx, static_pointer_cast<Uint32Member>(*it)->value.number);
       break;
     case CAPS_MEMBER_TYPE_INT64:
-      c = snprintf(p, psize, "%u: %" PRIi64 "l\n", idx, static_pointer_cast<Int64Member>(m)->value.number);
+      c = snprintf(p, psize, "%u: %" PRIi64 "l\n", idx, static_pointer_cast<Int64Member>(*it)->value.number);
       break;
     case CAPS_MEMBER_TYPE_UINT64:
-      c = snprintf(p, psize, "%u: %" PRIu64 "ul\n", idx, static_pointer_cast<Uint64Member>(m)->value.number);
+      c = snprintf(p, psize, "%u: %" PRIu64 "ul\n", idx, static_pointer_cast<Uint64Member>(*it)->value.number);
       break;
     case CAPS_MEMBER_TYPE_FLOAT:
-      c = snprintf(p, psize, "%u: %f\n", idx, static_pointer_cast<FloatMember>(m)->value.number);
+      c = snprintf(p, psize, "%u: %f\n", idx, static_pointer_cast<FloatMember>(*it)->value.number);
       break;
     case CAPS_MEMBER_TYPE_DOUBLE:
-      c = snprintf(p, psize, "%u: %lfL\n", idx, static_pointer_cast<DoubleMember>(m)->value.number);
+      c = snprintf(p, psize, "%u: %lfL\n", idx, static_pointer_cast<DoubleMember>(*it)->value.number);
       break;
     case CAPS_MEMBER_TYPE_STRING:
-      c = snprintf(p, psize, "%u: \"%s\"\n", idx, static_pointer_cast<StringMember>(m)->data.c_str());
+      c = snprintf(p, psize, "%u: \"%s\"\n", idx, static_pointer_cast<StringMember>(*it)->data.c_str());
       break;
     case CAPS_MEMBER_TYPE_BINARY:
-      c = snprintf(p, psize, "%u: binary data %zd bytes\n", idx++, static_pointer_cast<BinaryMember>(m)->data.size());
+      c = snprintf(p, psize, "%u: binary data %zd bytes\n", idx++, static_pointer_cast<BinaryMember>(*it)->data.size());
       break;
     case CAPS_MEMBER_TYPE_OBJECT:
       c = snprintf(p, psize, "%u: caps\n", idx);
-      if (c > psize)
-        throw out_of_range("out buffer too small");
+      if ((uint32_t)c > psize)
+        return size - 1;
       p += c;
       psize -= c;
-      c = static_pointer_cast<ObjectMember>(m)->value.dump(indent + 1, p, psize);
+      c = static_pointer_cast<ObjectMember>(*it)->value.dump(indent + 1, p, psize);
       break;
     case CAPS_MEMBER_TYPE_VOID:
       c = snprintf(p, psize, "%u: void\n", idx);
       break;
     default:
-      throwException<domain_error>("unknown member type '%c', caps may corrupted", m->type());
+      throwException<domain_error>("unknown member type '%c', caps may corrupted", (*it)->type());
     }
-    if (c > psize)
-      throw out_of_range("out buffer too small");
+    if ((uint32_t)c > psize)
+      return size - 1;
     p += c;
     psize -= c;
     ++idx;
-  });
+    ++it;
+  }
   auto r = p - out;
   if (r == 0)
     out[0] = '\0';
