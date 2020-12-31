@@ -1,5 +1,11 @@
 #pragma once
 
+/// \file caps.h
+/// caps接口定义
+/// \author chen.zhang@rokid.com
+/// \version 2.0.0
+/// \date 2020-12-31
+
 #include <stdint.h>
 
 #define CAPS_VERSION 5
@@ -26,8 +32,13 @@ namespace rokid {
 class Member;
 typedef std::shared_ptr<Member> MemberPointer;
 
+/// \class Caps
+/// 结构数据序列化及反序列化
+/// 数据类型支持有/无符号整数, 单/双精度浮点, 布尔值, 字符串, 二进制数据
+/// 数据组织为数组形式，可嵌套，以下标0, 1, 2, ...访问数据。
 class Caps {
-private:
+public:
+  /// \class rokid::Caps::Value
   /// \brief Caps中成员变量数据封装类
   class Value {
   public:
@@ -67,6 +78,7 @@ private:
     // TODO: ReturnValue operator =(AssignType);
     // TODO: ReturnValue set(AssignType);
 
+    /// \brief 获取数据类型
     /// \return 数据类型 (CAPS_MEMBER_TYPE_INT32 etc.)
     char type() const;
 
@@ -99,43 +111,32 @@ public:
   /// \param size buffer size
   /// \throws invalid_argument
   /// \throws out_of_range
-  /// \return count of output bytes
+  /// \return 序列化结果字节数
   uint32_t serialize(void* out, uint32_t size) const;
 
-  /// \brief 写入void类型
+  /// \brief 写入void类型数据
   void write();
-  /// \brief 写入bool类型
+  /// \brief 向Caps写入不同类型的数据
+  /// \param ... 可传入不同类型的参数
   inline void write(bool v) { write((uint32_t)(v ? 1 : 0)); }
-  /// \brief 写入signed char类型
   inline void write(int8_t v) { write((int32_t)v); }
-  /// \brief 写入unsigned char类型
   inline void write(uint8_t v) { write((uint32_t)v); }
-  /// \brief 写入signed short类型
   inline void write(int16_t v) { write((int32_t)v); }
-  /// \brief 写入unsigned short类型
   inline void write(uint16_t v) { write((uint32_t)v); }
-  /// \brief 写入带符号32位整数类型
   void write(int32_t v);
-  /// \brief 写入不带符号32位整数类型
   void write(uint32_t v);
-  /// \brief 写入带符号64位整数类型
   void write(int64_t v);
-  /// \brief 写入不带符号64位整数类型
   void write(uint64_t v);
-  /// \brief 写入32位浮点数类型
   void write(float v);
-  /// \brief 写入64位浮点数类型
   void write(double v);
-  /// \brief 写入字符串类型
   void write(const char* v);
-  /// \brief 写入字符串类型
   inline void write(const std::string& v) { write(v.c_str()); }
-  /// \brief 写入二进制数据类型
   void write(const void* data, uint32_t size);
-  /// \brief 写入二进制数据类型
   inline void write(const std::vector<char>& v) { write(v.data(), v.size()); }
-  /// \brief 写入Caps类型
   void write(const Caps& v);
+
+  /// \brief 同write, 向Caps写入不同类型的数据
+  /// \param ... 可传入不同类型的参数
   inline void operator << (bool v) { write(v); }
   inline void operator << (int8_t v) { write(v); }
   inline void operator << (uint8_t v) { write(v); }
@@ -171,10 +172,14 @@ public:
     explicit type_error(const char* msg) : std::runtime_error(msg) {}
   };
 
+  /// \class rokid::Caps::iterator
   /// \brief Caps内数据成员迭代器
   class iterator {
   public:
+    /// \brief 判断迭代器是否到了末尾
     bool hasNext() const;
+    /// \brief 迭代器移动到下一个元素
+    /// \return 迭代器移动前的当前元素值
     Value next() const;
 
     inline void operator >> (bool& v) const { v = next(); }
@@ -199,11 +204,15 @@ public:
 
     friend class Caps;
   };
+  /// \brief 获取Caps迭代器
+  /// \param idx 迭代器起始元素下标
   /// \return 迭代器
   iterator iterate(uint32_t idx = 0) const;
 
+  /// \brief 判断Caps是否为空
   bool empty() const;
 
+  /// \brief 获取Caps内元素数量
   /// \return Caps内数据成员数量
   uint32_t size() const;
 
@@ -216,13 +225,14 @@ public:
   /// \brief 清除Caps内部数据
   void clear();
 
-  /// \brief 获取Caps二进制数据长度
+  /// \brief 获取Caps序列化后的数据字节数
   ///        例如serialize后的数据通过网络传输
-  ///        接收端需要此函数来获取完整的一个Caps二进制数据长度
+  ///        接收端需要此函数来获取完整的一个Caps序列化后数据长度
   /// \param in serialize生成的二进制数据
   /// \param size 'in'的可用长度，可能大于或小于实际Caps二进制数据长度
   /// throws invalid_argument 输入参数'in'为nullptr
   /// throws out_of_range 输入参数'in'的长度不足
+  /// \return 反序列化Caps对象所需的数据字节数
   static uint32_t getBinarySize(const void* in, uint32_t size);
 
 private:

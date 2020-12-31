@@ -4,7 +4,7 @@
 
 作者: chen.zhang@rokid.com
 
-更新时间: 2019.07.31
+更新时间: 2020.12.31
 
 ## 概述
 
@@ -15,7 +15,7 @@
 ## 生成文档
 
 ```
-./gendocs.sh
+./gendoc.sh
 ```
 
-生成文档: docs/html/index.html
+生成文档: docs/latex/refman.pdf
